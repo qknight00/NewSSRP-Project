@@ -37,6 +37,9 @@ all_calveg.lon <- all_calveg.pts@coords[,'x']
 all_calveg.lat <- all_calveg.pts@coords[,'y']
 summary(all_calveg.pts)
 
+#longtitude = x lat = y 
+
+
 #loading county map 
 ca.data <- readOGR("Data/CA_Counties")
 plot(ca.data,axes = TRUE, col = "grey95")
@@ -61,12 +64,16 @@ plot(model_all, add = TRUE)
 plot(ca.data)
 
 #running the sdm / prediction
-predict_calveg <- dismo::predict(object = model_all,
+predict_calveg_19 <- dismo::predict(object = model_all,
                                  x = bioclim.data,
                                  ext = extent(ca.data))
 plot(ca.data)
-plot(predict_calveg, main = "19 Bioclim Var and Calveg")
-
+plot(predict_calveg,
+     main = "19 Bioclim Var and Calveg", 
+     xlab = "Longtiude",
+     ylab = "Latitude",
+     ext = extent(ca.data))
+?plot
 
 #predict bioclim with 11 bioclim variables 
 #droplayers from the rasterstack
@@ -125,8 +132,8 @@ par(mfrow = c(1,1))
 #loading Weislander data and creating sdm with bioclim data
 #understanding that bioclim is not the best for this dataset? 
 
-weislander.data <- readOGR("Data/Weislander_Sage")
-
+weislander.data <- readOGR("Weislander_Sage/Weislander_Sage.shp")
+summary(weislander.data)
 #pulling lat/lon data for weislander dataset
 N = 300
 weislander.data_wgs84 <- spTransform(weislander.data, wgs84.crs) 
