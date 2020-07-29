@@ -203,6 +203,8 @@ predict_future_weislander <- predict(object = model_weislander_cmip11,
                                       ext = extent(ca.data))
 
 ?maxent
+
+#code to push weislander to the present 
 ------------------------------------------------------------
 #creating a file to move maps to qgis for manipulation :) 
 ?writeRaster()
