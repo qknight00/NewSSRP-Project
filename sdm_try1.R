@@ -52,7 +52,7 @@ crs(bioclim.data)
 ca.data <- spTransform(ca.data,crs(bioclim.data))
 
 
-
+#stopped here 12:13am
 
 #code to build sdm with 19 variables 
 summary(bioclim.data)
@@ -61,56 +61,57 @@ model_all <- bioclim(bioclim.data,
                      p = all_calveg.pts)
 
 plot(model_all, add = TRUE)
-plot(ca.data)
+
 
 #running the sdm / prediction
 predict_calveg_19 <- dismo::predict(object = model_all,
                                  x = bioclim.data,
                                  ext = extent(ca.data))
-plot(ca.data)
-plot(predict_calveg,
+
+plot(predict_calveg_19,
      main = "19 Bioclim Var and Calveg", 
      xlab = "Longtiude",
-     ylab = "Latitude",
-     ext = extent(ca.data))
-?plot
+     ylab = "Latitude",)
+
 
 #predict bioclim with 11 bioclim variables 
 #droplayers from the rasterstack
-?dropLayer
-bioclim.data <- dropLayer(bioclim.data, c(4,5,6,7,13,16,17,19))
+dir.create(path = "input_11")
+bioclim_11.data <- getData(name = "worldclim",
+                        var = 'bio', 
+                        res = 2.5,
+                        path = "input_11/")
+
+bioclim_11.data <- dropLayer(bioclim_11.data, c(4,5,6,7,13,16,17,19))
 
 #now equals 11  
-nlayers(bioclim.data)
-plot(bioclim.data)
+nlayers(bioclim_11.data)
+plot(bioclim_11.data)
 
 #creating model for calveg plus 11 variables from bioclim 
 
 
-model_all_11 <- bioclim(bioclim.data,
+model_all_11 <- bioclim(bioclim_11.data,
                             p = all_calveg.pts)
 
 predict_calveg_11 <- dismo::predict(model_all_11,
-                                         x = bioclim.data,
+                                         x = bioclim_11.data,
                                          ext = extent(ca.data))
-plot(predict_calveg_11, main = "Calveg + 11 Bioclim Variables")
+plot(predict_calveg_11,
+     main = "Calveg + 11 Bioclim Variables",
+     xlab = "Longtiude",
+     ylab = "Latitude",)
 
 
 --------------------------------------------------
 #notes and extra code 
-#pulling central and south calveg sage shapefile
-central_calveg.data <- readOGR("Data/CALVEG_Sage","Central_Sage")
-
-south_calveg.data <- readOGR("Data/CALVEG_Sage","South_Sage")
-
-# Turn it into SpatialDataPoints
+#pulling central and south calveg sage shapefile removed  
 
 #code for writing a csv file 
 #central_calveg.csv <- write.csv(central_calveg.data) 
 
 #code to get rid of NAs removed / deemed unneccesary 
 #skipped determining geographic extent 
-#load data for base map ? 
 
 #reading spatial data 
 class(calveg.data)
@@ -132,7 +133,7 @@ par(mfrow = c(1,1))
 #loading Weislander data and creating sdm with bioclim data
 #understanding that bioclim is not the best for this dataset? 
 
-weislander.data <- readOGR("Weislander_Sage/Weislander_Sage.shp")
+weislander.data <- readOGR("Data/Weislander_Sage")
 summary(weislander.data)
 #pulling lat/lon data for weislander dataset
 N = 300
@@ -143,17 +144,7 @@ weislander.lon <- weislander.pts@coords[,'x']
 weislander.lat <- weislander.pts@coords[,'y']
 summary(weislander.pts)
 
-#code for sdm 
-
-model_weislander <- bioclim(bioclim.data,
-                            p = weislander.pts)
-plot(model_weislander)
-plot(ca.data)
-predict_weislander <- dismo::predict(object = model_weislander,
-                                     x = bioclim.data,
-                                     ext = extent(ca.data))
-plot(predict_weislander, main = "weislander and BIOCLIM Data")
-
+#removed code for map using weislander with bioclim data 
 
 #now try to load CMIP Data to predict Weislander distribution 
 
@@ -165,6 +156,7 @@ cmip5.data <- getData('CMIP5',
                       model = 'AC',
                       year = 50,
                       path = "input/")
+
 plot(cmip5.data)
 model_weislander_cmip <- bioclim(cmip5.data,
                                  p = weislander.pts)
@@ -172,13 +164,19 @@ plot(model_weislander_cmip)
 predict_weislander_cmip <- dismo::predict(object = model_weislander_cmip,
                                           x = cmip5.data,
                                           ext = extent(ca.data))
-plot(predict_weislander_cmip, main = "Weislander and CMIP Data")
+plot(predict_weislander_cmip, main = "Weislander and 19 CMIP Data")
 
 
 #pulling the 11 variables from the cmip5 data 
-summary(cmip5.data)
-nlayers(cmip5.data)
-cmip5_11.data <- dropLayer(cmip5.data, c(4,5,6,7,13,16,17,19))
+
+cmip5_11.data <- getData('CMIP5',
+                      var = 'bio',
+                      res = 2.5,
+                      rcp = 45,
+                      model = 'AC',
+                      year = 50,
+                      path = "input_11/")
+cmip5_11.data <- dropLayer(cmip5_11.data, c(4,5,6,7,13,16,17,19))
 nlayers(cmip5_11.data)
 
 #weislander prediction using the 11 variables in cmip5 
@@ -190,17 +188,32 @@ predict_weislander_cmip11 <- predict(object = model_weislander_cmip11,
 plot(predict_weislander_cmip11, main = "Wieslander and 11 Cmip Variables")
 
 par(mfrow = c(2,1))
+par(mfrow = c(1,1))
+
+
 
 #pushing weislander projection into the future 
-summary(predict_weislander_cmip11)
-?predict
+#using all 19 variables 
+#setting names equal 
+names(bioclim.data) <- names(cmip5.data)
+names(bioclim_11.data) <- names(cmip5_11.data)
 
-model_weislander_cmip11 <- bioclim(cmip5_11.data,
-                                   p = weislander.pts)
-plot(model_weislander_cmip11)
-predict_future_weislander <- predict(object = model_weislander_cmip11,
-                                      x = bioclim11.data,
+
+predict_current_weislander_19 <- predict(object = model_weislander_cmip,
+                                         x = bioclim.data,
+                                         ext = extent(ca.data))
+plot(predict_current_weislander_19,
+     main = "Current Sage Scrub Distribution with 19 Var",
+     xlab = "Longitude",
+     ylab = "Latitude")
+
+predict_current_weislander_11 <- predict(object = model_weislander_cmip11,
+                                      x = bioclim_11.data,
                                       ext = extent(ca.data))
+plot(predict_current_weislander_11,
+     main = "Current Sage Scrub Distribution with 11 Var",
+     xlab = "Longitude",
+     ylab = "Latitude")
 
 ?maxent
 
