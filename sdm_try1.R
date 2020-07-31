@@ -207,6 +207,11 @@ plot(predict_current_weislander_19,
      xlab = "Longitude",
      ylab = "Latitude")
 
+current_prediction_19 <- plot(predict_current_weislander_19,
+                              main = "Current Sage Scrub Distribution with 19 Var",
+                              xlab = "Longitude",
+                              ylab = "Latitude")
+
 predict_current_weislander_11 <- predict(object = model_weislander_cmip11,
                                       x = bioclim_11.data,
                                       ext = extent(ca.data))
@@ -224,3 +229,9 @@ plot(predict_current_weislander_11,
 
 writeRaster(predict_weislander_cmip11, filename = file.path("weislander_cmip"))
 writeRaster(predict_calveg,filename = file.path("calveg_bioclim"))
+
+dir.create(path = "For QGIS")
+writeRaster(predict_current_weislander_19, 
+            filename = "Current_Prediction_19")
+writeRaster(predict_calveg_19,
+            filename = "Calveg_19")
