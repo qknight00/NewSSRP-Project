@@ -5,7 +5,7 @@ library(reshape2)
 library(dplyr)
 library(raster)
 library(sp)
-
+library(rgdal)
 #installing prism 
 install.packages("prism")
 library(prism)
@@ -35,12 +35,10 @@ prism::get_prism_annual(type = "ppt",
                         keepZip = TRUE)
 
 
+#confirming we have 1930 data for all 4 variables 
+head(prism::ls_prism_data(name = TRUE))
+class(prism::ls_prism_data(name = TRUE))
 
-head(ls_prism_data(name = TRUE))
-prism_image(ls_prism_data()[1,1])
-
-#1930 - 1940 climate data 
-
-#downloaded prism 1930s recip data straight from website
-summary(file.path("Prism1"))
-
+#reading the data - dataframes? - and putting it into variable 
+ppt_1930 <- raster::raster("prism.path = Prism1/PRISM_ppt_stable_4kmM2_1930_bil/PRISM_ppt_stable_4kmM2_1930_bil.bil")
+plot(ppt_1930)
