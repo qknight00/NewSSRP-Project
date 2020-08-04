@@ -34,7 +34,49 @@ tmin.stack_12 <- dropLayer(tmin.stack, 1)
 
 biovars(ppt.stack_12, tmin.stack_12, tmax.stack_12)
 # yay!
+create_var <- biovars(ppt.stack_12, tmin.stack_12, tmax.stack_12)
+nlayers(create_var)
 
+?writeRaster
+prism_var <- writeRaster(create_var,"Data/PRISM/prism_variables",format = "raster")
+
+print(prism_var)
+plot(prism_var)
 # I'll let you figure out how to write it (so you can pick where to write it to)
 # but I would use this link to pick a solution probably https://stackoverflow.com/questions/26763013/r-write-rasterstack-and-preserve-layer-names
 
+
+#some code for making the models 
+#model with all 19 var and weislander data 
+
+weislander.data <- readOGR("Data/Weislander_Sage")
+summary(weislander.data)
+#pulling lat/lon data for weislander dataset
+# looked at the difference that increasing number of points would make 
+N = 300
+M = 500
+O = 1000
+weislander.data_wgs84 <- spTransform(weislander.data, wgs84.crs) 
+weislander.pts <- spsample(weislander.data_wgs84, O, type = 'random')
+weislander.pts@coords
+weislander.lon <- weislander.pts@coords[,'x']
+weislander.lat <- weislander.pts@coords[,'y']
+summary(weislander.pts)
+
+model_weislander_prism <- bioclim(prism_var,
+                                   p = weislander.pts)
+predict_weislander_prism <- predict(object = model_weislander_prism,
+                                     x = prism_var,
+                                     ext = extent(ca.data))
+plot(predict_weislander_prism, main = "Wieslander and 19 Prism Var")
+
+#model with the 11 variables chosen 
+
+prism11 <- dropLayer(prism_var, c(4,5,6,7,13,16,17,19))
+nlayers(prism11)
+model_weis_11 <- bioclim(prism11,
+                         p = weislander.pts)
+predict_weis_11 <- predict(object = model_weis_11,
+                           x = prism11,
+                           ext = extent(ca.data))
+plot(predict_weis_11, main = "Wieslander and 11 Prism Var, 1000 points")
