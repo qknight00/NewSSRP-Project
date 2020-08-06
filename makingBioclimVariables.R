@@ -39,11 +39,14 @@ nlayers(create_var)
 
 ?writeRaster
 prism_var <- writeRaster(create_var,"Data/PRISM/prism_variables",format = "raster")
+readOGR()
 
 print(prism_var)
 plot(prism_var)
 # I'll let you figure out how to write it (so you can pick where to write it to)
 # but I would use this link to pick a solution probably https://stackoverflow.com/questions/26763013/r-write-rasterstack-and-preserve-layer-names
+
+
 
 
 #some code for making the models 

@@ -42,3 +42,7 @@ class(prism::ls_prism_data(name = TRUE))
 #reading the data - dataframes? - and putting it into variable 
 ppt_1930 <- raster::raster("prism.path = Prism1/PRISM_ppt_stable_4kmM2_1930_bil/PRISM_ppt_stable_4kmM2_1930_bil.bil")
 plot(ppt_1930)
+
+#loads specific info when all files for month 01 are placed into a folder 
+ppt_1930_01 <- raster::raster("Prism Data 1930/PRISM ppt1930s/PRISM_ppt_stable_4kmM2_193001_bil/PRISM_ppt_stable_4kmM2_193001_bil.bil")
+plot(ppt_1930_01)

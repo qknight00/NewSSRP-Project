@@ -137,8 +137,10 @@ weislander.data <- readOGR("Data/Weislander_Sage")
 summary(weislander.data)
 #pulling lat/lon data for weislander dataset
 N = 300
+M = 500
+O = 1000
 weislander.data_wgs84 <- spTransform(weislander.data, wgs84.crs) 
-weislander.pts <- spsample(weislander.data_wgs84, N, type = 'random')
+weislander.pts <- spsample(weislander.data_wgs84, O, type = 'random')
 weislander.pts@coords
 weislander.lon <- weislander.pts@coords[,'x']
 weislander.lat <- weislander.pts@coords[,'y']

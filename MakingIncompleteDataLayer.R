@@ -6,8 +6,8 @@ wgs84.crs <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
 # If not, combine south and central shapefiles
 # if so, read the combo in
 
-calveg_c.shp <- spTransform(readOGR("Data/CALVEG/CentralCoast/"), wgs84.crs)
-calveg_s.shp <- spTransform(readOGR("Data/CALVEG/SouthCoast/"), wgs84.crs)
+calveg_c.shp <- spTransform(readOGR("Data/CALVEG/CentralCoast"), wgs84.crs)
+calveg_s.shp <- spTransform(readOGR("Data/CALVEG/SouthCoast"), wgs84.crs)
 
 # Ok this next line takes the min and max extents of each shapefile, and finds
 # the smallest extent that encompasses both of the shapefiles
