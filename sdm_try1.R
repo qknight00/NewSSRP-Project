@@ -82,7 +82,7 @@ bioclim_11.data <- getData(name = "worldclim",
                         res = 2.5,
                         path = "input_11/")
 
-bioclim_11.data <- dropLayer(bioclim_11.data, c(4,5,6,7,13,16,17,19))
+bioclim_11.data <- dropLayer(bioclim.data, c(4,5,6,7,13,16,17,19))
 
 #now equals 11  
 nlayers(bioclim_11.data)
@@ -102,6 +102,12 @@ plot(predict_calveg_11,
      xlab = "Longtiude",
      ylab = "Latitude",)
 
+predict_calvef_future <- predict(model_all_11,
+                                 x = cmip5_11.data,
+                                 ext = extent(ca.data))
+plot(predict_calvef_future,
+     xlab = "Longtiude",
+     ylab = "Latitude")
 
 --------------------------------------------------
 #notes and extra code 
