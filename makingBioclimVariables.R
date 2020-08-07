@@ -42,7 +42,7 @@ prism_var <- writeRaster(create_var,"Data/PRISM/prism_variables",format = "raste
 readOGR()
 
 print(prism_var)
-plot(prism_var)
+names(prism_var)
 # I'll let you figure out how to write it (so you can pick where to write it to)
 # but I would use this link to pick a solution probably https://stackoverflow.com/questions/26763013/r-write-rasterstack-and-preserve-layer-names
 
@@ -73,8 +73,22 @@ predict_weislander_prism <- predict(object = model_weislander_prism,
                                      ext = extent(ca.data))
 plot(predict_weislander_prism, main = "Wieslander and 19 Prism Var")
 
-#model with the 11 variables chosen 
+#current with 19 
+current_all <- predict(object = model_weislander_prism,
+                       x = bioclim.data,
+                       ext = extent(ca.data))
+plot(current_all)
 
+#future models 
+future_all <- predict(object = model_weislander_prism,
+                      x = cmip5.data,
+                      ext = extent(ca.data))
+
+plot(future_all)
+
+#model with the 11 variables chosen 
+names(prism_var)
+names(bioclim.data)
 prism11 <- dropLayer(prism_var, c(4,5,6,7,13,16,17,19))
 nlayers(prism11)
 model_weis_11 <- bioclim(prism11,
@@ -92,30 +106,15 @@ plot(predict_weis_11,
 predict_current <- predict(object = model_weis_11,
                            x = bioclim.data,
                            ext = extent(ca.data))
-plot(predict_current)
-
-predict_future <- predict(object = model_weis_11,
-                          x = cmip5_11.data,
-                          ext = extent(ca.data))
-model_weis_11 <- bioclim(prism11,
-                         p = weislander.pts)
-predict_weis_11 <- predict(object = model_weis_11,
-                           x = prism11,
-                           ext = extent(ca.data))
-plot(predict_weis_11,
+plot(predict_current,
      xlab = "Longtiude",
      ylab = "Latitude")
-?predict
-
-#projecting into the current with bioclim data 
-
-predict_current <- predict(object = model_weis_11,
-                           x = bioclim.data,
-                           ext = extent(ca.data))
-plot(predict_current)
 
 predict_future <- predict(object = model_weis_11,
                           x = cmip5_11.data,
                           ext = extent(ca.data))
-# go and make sure cmip / bio variable names are the same 
-plot(predict_future)
+
+plot(predict_future,
+     xlab = "Longtiude",
+     ylab = "Latitude")
+

@@ -159,7 +159,7 @@ cmip5.data <- getData('CMIP5',
                       year = 50,
                       path = "input/")
 
-plot(cmip5.data)
+names(cmip5.data)
 model_weislander_cmip <- bioclim(cmip5.data,
                                  p = weislander.pts)
 plot(model_weislander_cmip)
@@ -178,7 +178,7 @@ cmip5_11.data <- getData('CMIP5',
                       model = 'AC',
                       year = 50,
                       path = "input_11/")
-cmip5_11.data <- dropLayer(cmip5_11.data, c(4,5,6,7,13,16,17,19))
+cmip5_11.data <- dropLayer(cmip5.data, c(4,5,6,7,13,16,17,19))
 nlayers(cmip5_11.data)
 
 #weislander prediction using the 11 variables in cmip5 
@@ -197,8 +197,8 @@ par(mfrow = c(1,1))
 #pushing weislander projection into the future 
 #using all 19 variables 
 #setting names equal 
-names(bioclim.data) <- names(cmip5.data)
-names(bioclim_11.data) <- names(cmip5_11.data)
+names(cmip5.data) <- names(bioclim.data)
+names(cmip5.data)
 
 
 predict_current_weislander_19 <- predict(object = model_weislander_cmip,
