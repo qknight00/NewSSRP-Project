@@ -34,7 +34,7 @@ tmin.stack_12 <- dropLayer(tmin.stack, 1)
 
 biovars(ppt.stack_12, tmin.stack_12, tmax.stack_12)
 # yay!
-create_var <- biovars(ppt.stack_12, tmin.stack_12, tmax.stack_12)
+prism_var <- biovars(ppt.stack_12, tmin.stack_12, tmax.stack_12)
 nlayers(create_var)
 
 ?writeRaster
@@ -60,7 +60,7 @@ N = 300
 M = 500
 O = 1000
 weislander.data_wgs84 <- spTransform(weislander.data, wgs84.crs) 
-weislander.pts <- spsample(weislander.data_wgs84, O, type = 'random')
+weislander.pts <- spsample(weislander.data_wgs84, N, type = 'random')
 weislander.pts@coords
 weislander.lon <- weislander.pts@coords[,'x']
 weislander.lat <- weislander.pts@coords[,'y']
@@ -82,4 +82,40 @@ model_weis_11 <- bioclim(prism11,
 predict_weis_11 <- predict(object = model_weis_11,
                            x = prism11,
                            ext = extent(ca.data))
-plot(predict_weis_11, main = "Wieslander and 11 Prism Var, 1000 points")
+plot(predict_weis_11,
+     xlab = "Longtiude",
+     ylab = "Latitude")
+?predict
+
+#projecting into the current with bioclim data 
+
+predict_current <- predict(object = model_weis_11,
+                           x = bioclim.data,
+                           ext = extent(ca.data))
+plot(predict_current)
+
+predict_future <- predict(object = model_weis_11,
+                          x = cmip5_11.data,
+                          ext = extent(ca.data))
+model_weis_11 <- bioclim(prism11,
+                         p = weislander.pts)
+predict_weis_11 <- predict(object = model_weis_11,
+                           x = prism11,
+                           ext = extent(ca.data))
+plot(predict_weis_11,
+     xlab = "Longtiude",
+     ylab = "Latitude")
+?predict
+
+#projecting into the current with bioclim data 
+
+predict_current <- predict(object = model_weis_11,
+                           x = bioclim.data,
+                           ext = extent(ca.data))
+plot(predict_current)
+
+predict_future <- predict(object = model_weis_11,
+                          x = cmip5_11.data,
+                          ext = extent(ca.data))
+# go and make sure cmip / bio variable names are the same 
+plot(predict_future)

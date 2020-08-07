@@ -204,10 +204,28 @@ vars_1925_1935 <- biovars(ppt1925_1935.stack,tmin1925_1935.stack,tmax1925_1935.s
 
 vars_1925 <- biovars(ppt1925.stack,tmin1925.stack,tmax1925.stack)
 vars1926 <- biovars(ppt1926.stack,tmin1926.stack,tmax1926.stack)
+vars1927 <- biovars(ppt1927.stack,tmin1927.stack,tmax1927.stack)
+vars1928 <- biovars(ppt1928.stack,tmin1928.stack,tmax1928.stack)
+vars1929 <- biovars(ppt1929.stack,tmin1929.stack,tmax1929.stack)
+vars1930 <- biovars(ppt1930.stack,tmin1930.stack,tmax1930.stack)
+vars1931 <- biovars(ppt1931.stack,tmin1931.stack,tmax1931.stack)
+vars1932 <- biovars(ppt1932.stack,tmin1932.stack,tmax1932.stack)
+vars1933 <- biovars(ppt1933.stack,tmin1933.stack,tmax1933.stack)
+vars1934 <- biovars(ppt1934.stack,tmin1934.stack,tmax1934.stack)
+vars1935 <- biovars(ppt1935.stack,tmin1935.stack,tmax1935.stack)
 
+#stacking 2 years 
 stack_vars_2526 <- raster::stack(c(vars_1925,vars1926))
 plot(stack_vars_2526)
-?biovars
+
+#stacking all years 
+stack_30 <- raster::stack(c(vars_1925,vars1926,vars1927,vars1928,
+                             vars1929,vars1930))
+
+stack_all <- raster::stack(c(vars_1925,vars1926,vars1927,vars1928,
+                             vars1929,vars1930,vars1931,vars1932,
+                             vars1933,vars1934,vars1935))
+
 nlayers(stack_vars_2526)  #produces 38 layers
 #think about cropping extent to the california state line 
 ?crop
@@ -242,3 +260,16 @@ predict_stack <- dismo::predict(object = model,
                                           x = stack_vars_2526,
                                           ext = extent(ca.data))
 plot(predict_stack)
+#model with just one year, 1925 
+model_25 <- bioclim(vars_1925, p = weislander.pts)
+predict_25 <- predict(object = model_25,
+                      x = vars_1925,
+                      ext = extent(ca.data))
+plot(predict_25)
+
+#model with all years 1925 - 1935 
+model_all <- bioclim(stack_30, p = weislander.pts)
+predict_all <- predict(object = model_all,
+                       x = stack_30,
+                       ext = extent(ca.data))
+plot(predict_all)
