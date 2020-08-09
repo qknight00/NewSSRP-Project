@@ -1,3 +1,8 @@
+#reducing the layers in bioclim to 11 instead of 19 and running models using 
+#those 11 
+#there is code to model calveg and bioclim , and weislander and bioclim ,
+#may be able to delete modeling done here if found in other scripts .
+
 library("raster")
 library("dismo")
 library("maptools")

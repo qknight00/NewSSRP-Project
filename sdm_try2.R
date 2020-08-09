@@ -1,5 +1,6 @@
 # In this file we read in historic PRISM (bioclim) variables and current 
 # bioclim variables and project past distributions on current distributions
+
 library(raster)
 library(dismo)
 
@@ -11,7 +12,15 @@ ca.data <- spTransform(readOGR("Data/CA_Counties"), wgs84.crs) # for extent
 
 # !!! NEED TO READ IN CONTEMPORARY CLIMATE HERE !!!
 
+#note that bioclim is def not a prism variable 
+bioclim_read <- raster("Data/PRISM/prism_variables/bioclim1-19.grd")
 
+crs(bioclim_read)
+crs(bioclim.data)
+nlayers(bioclim_read)
+nlayers(bioclim.data)
+
+bioclim_read <- spTransform(bioclim_read,crs(bioclim.data))
 
 #some code for making the models 
 #model with all 19 var and weislander data 
@@ -49,21 +58,21 @@ predict_weis_11 <- predict(object = model_weis_11,
 sp::plot(predict_weis_11,
          xlab = "Longtiude",
          ylab = "Latitude")
-?predict
+
 
 #projecting into the current with bioclim data 
 
-predict_current <- predict(object = model_weis_11,
-                           x = bioclim.data,
+predict_current <- raster::predict(object = model_weis_11,
+                           x = bioclim_read,
                            ext = extent(ca.data))
 plot(predict_current)
-
+?predict
 predict_future <- predict(object = model_weis_11,
                           x = cmip5_11.data,
                           ext = extent(ca.data))
 model_weis_11 <- bioclim(prism11,
                          p = weislander.pts)
-predict_weis_11 <- predict(object = model_weis_11,
+predict_weis_11 <- dismo::predict(object = model_weis_11,
                            x = prism11,
                            ext = extent(ca.data))
 plot(predict_weis_11,

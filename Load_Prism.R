@@ -1,4 +1,8 @@
-#lets looks at PRISM Data :) 
+#lets looks at PRISM Data 
+# loading it in for the first time and using the prism function ,
+# ended up not using this method and loading it manually from the website 
+
+
 install.packages("devtools")
 library(devtools)
 library(reshape2)

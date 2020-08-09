@@ -1,3 +1,6 @@
+#loading prism data for the years 1925-1935
+# and some sdm for the years 1930 , and 1925/26 on the bottom 
+
 library(raster)
 library(dismo)
 library(rgdal)
@@ -32,6 +35,11 @@ summary(weislander.pts)
 # with the 'pattern' variable, which follows a regex pattern recognition protocol. The * means
 # to match any character or set of characters, the $ means that the file name ends at that point
 # so the pattern says "match anything that has anything before .bil, but ends with .bil
+
+?list.files
+#looking at crs 
+crs_25 <- crs("PRISM 1925-1935/PPT/PRISM_ppt_stable_4kmM2_1925_all_bil/PRISM_ppt_stable_4kmM2_192501_bil.bil")
+print(ppt1925.files)
 
 
 ppt1925.files <- list.files("PRISM 1925-1935/PPT/PRISM_ppt_stable_4kmM2_1925_all_bil/", pattern = "*.bil$", full.names = T)
@@ -72,6 +80,49 @@ ppt1933.stack <- dropLayer(ppt1933.stack,1)
 ppt1934.stack <- dropLayer(ppt1934.stack,1)
 ppt1935.stack <- dropLayer(ppt1935.stack,1)
 
+class(ppt1925.stack)
+class(ppt1925.files[2])
+#transforming crs of raster stack
+?spTransform
+ppt1925_crs <- projectRaster(ppt1925.stack,wgs84.crs)
+
+crs(ppt1925.stack)
+crs(bioclim.data)
+Nad83.crs <- "+proj=longlat +datum=NAD83 +no_defs"
+bioclim_crs <- projectRaster(bioclim.data, Nad83.crs)
+crs(x = "Data/PRISM/prism_variables.grd")
+?projectRaster
+
+#go through and change the year 1925 crs data and then run a model to see if this works  
+
+newproj <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+proj_2 <- "+proj=longlat +datum=NAD83 +no_defs "
+
+projectRaster(bioclim.data, crs = proj_2)
+crs(biocli.data)
+
+projectRaster(ppt1925.stack, crs = newproj)
+projectRaster(tmin1925.stack, crs = newproj)
+projectRaster(tmax1925.stack, crs = newproj)
+
+biovar_1925 <- biovars(ppt1925.stack, tmin1925.stack, tmax1925.stack) 
+model_1925 <- bioclim(biovar_1925,p = weislander.pts)
+predict_1925 <- predict(object = model_1925,
+                        x = biovar_1925,
+                        ext = extent(ca.data))
+plot(predict_1925)
+
+predict_1925_present <- predict(object = model_1925,
+                                x = bioclim.data,
+                                ext = extent(ca.data))
+plot(predict_1925_present)
+
+crs(biovar_1925)
+crs(ppt1925.stack)
+crs(tmax1925.stack)
+
+
+?biovars
 # now we read the array of file names in as a stack of rasters (just a bunch) with the 'stack function
 
 #first try without stacking the years first
