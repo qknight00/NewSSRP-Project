@@ -56,20 +56,37 @@ predict_weis_11 <- predict(object = model_weis_11,
                            x = prism11,
                            ext = extent(ca.data))
 sp::plot(predict_weis_11,
+         main = "past",
          xlab = "Longtiude",
          ylab = "Latitude")
 
 
 #projecting into the current with bioclim data 
+#read in bioclim .grd file with the different crs 
+new_bioclim <- raster::stack("Data/PRISM/bioclim crs change/r_tmp_2020-08-07_180513_16740_57533.gri")
+class(new_bioclim)
+class(bioclim.data)
 
-predict_current <- raster::predict(object = model_weis_11,
-                           x = bioclim_read,
+current_model <- bioclim(new_bioclim,
+                         p = weislander.pts)
+predict_current <- predict(object = current_model,
+                           x = new_bioclim,
                            ext = extent(ca.data))
-plot(predict_current)
+plot(predict_current, main = "current")
+
+
 ?predict
-predict_future <- predict(object = model_weis_11,
+future_model <- bioclim(cmip5_11.data,
+                        p = weislander.pts)
+predict_future <- predict(object = future_model,
                           x = cmip5_11.data,
                           ext = extent(ca.data))
+plot(predict_future,main = "future")
+
+
+
+
+
 model_weis_11 <- bioclim(prism11,
                          p = weislander.pts)
 predict_weis_11 <- dismo::predict(object = model_weis_11,
