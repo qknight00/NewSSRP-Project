@@ -277,6 +277,7 @@ stack_all <- raster::stack(c(vars_1925,vars1926,vars1927,vars1928,
                              vars1929,vars1930,vars1931,vars1932,
                              vars1933,vars1934,vars1935))
 
+nlayers(stack_all)
 nlayers(stack_vars_2526)  #produces 38 layers
 #think about cropping extent to the california state line 
 ?crop
@@ -312,15 +313,26 @@ predict_stack <- dismo::predict(object = model,
                                           ext = extent(ca.data))
 plot(predict_stack)
 #model with just one year, 1925 
-model_25 <- bioclim(vars_1925, p = weislander.pts)
+model_25 <- bioclim(biovar_1925, p = weislander.pts)
 predict_25 <- predict(object = model_25,
-                      x = vars_1925,
+                      x = biovar_1925,
                       ext = extent(ca.data))
-plot(predict_25)
+plot(predict_25, main = "prism 1925 only / past")
+
+#predicting into the present with bioclim / weislander
+model_25_present <- bioclim(bioclim_11.data, p = weislander.pts)
+predict_model_25_present <- predict(object = model_25_present,
+                                    x = bioclim.data,
+                                    ext = extent(ca.data))
+plot(predict_model_25_present)
+
 
 #model with all years 1925 - 1935 
-model_all <- bioclim(stack_30, p = weislander.pts)
+model_all <- bioclim(stack_all, p = weislander.pts)
 predict_all <- predict(object = model_all,
-                       x = stack_30,
+                       x = stack_all,
                        ext = extent(ca.data))
 plot(predict_all)
+
+#project to the current will always look the same if creating a model
+# each time you make the prediction? 
