@@ -5,6 +5,7 @@ library(raster)
 library(dismo)
 library(rgdal)
 
+
 #Load for SDM 
 wgs84.crs <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
 
@@ -265,25 +266,104 @@ vars1933 <- biovars(ppt1933.stack,tmin1933.stack,tmax1933.stack)
 vars1934 <- biovars(ppt1934.stack,tmin1934.stack,tmax1934.stack)
 vars1935 <- biovars(ppt1935.stack,tmin1935.stack,tmax1935.stack)
 
+nlayers(vars_1925)
+#cutting the number of bioclim variables in each year
+
+vars_1925 <- dropLayer(vars_1925, c(4,5,6,7,13,16,17,19))
+vars1926 <- dropLayer(vars1926,c(4,5,6,7,13,16,17,19))
+vars1927 <- dropLayer(vars1927,c(4,5,6,7,13,16,17,19))
+vars1928 <- dropLayer(vars1928,c(4,5,6,7,13,16,17,19))
+vars1929 <- dropLayer(vars1929,c(4,5,6,7,13,16,17,19))
+vars1930 <- dropLayer(vars1930,c(4,5,6,7,13,16,17,19))
+vars1931 <- dropLayer(vars1931,c(4,5,6,7,13,16,17,19))
+vars1932 <- dropLayer(vars1932,c(4,5,6,7,13,16,17,19))
+vars1933 <- dropLayer(vars1933,c(4,5,6,7,13,16,17,19))
+vars1934 <- dropLayer(vars1934,c(4,5,6,7,13,16,17,19))
+vars1935 <- dropLayer(vars1935,c(4,5,6,7,13,16,17,19))
+
+
+
 #stacking 2 years 
 stack_vars_2526 <- raster::stack(c(vars_1925,vars1926))
 plot(stack_vars_2526)
 
 #stacking all years 
-stack_30 <- raster::stack(c(vars_1925,vars1926,vars1927,vars1928,
-                             vars1929,vars1930))
 
 stack_all <- raster::stack(c(vars_1925,vars1926,vars1927,vars1928,
                              vars1929,vars1930,vars1931,vars1932,
                              vars1933,vars1934,vars1935))
 
 nlayers(stack_all)
+#now stack all contains 123 layers , 11 years each year containing the 
+#11 variables for each year
+
 nlayers(stack_vars_2526)  #produces 38 layers
 #think about cropping extent to the california state line 
-?crop
-?merge
-?as.data.frame
 
+
+?crop
+#crop raster to the extent of the ca.data file 
+stack_crop <- raster::crop(stack_all, ca.data)
+plot(stack_crop)
+names(stack_crop)
+
+#take the mean of all the bioclim layers/ variables 
+
+
+?`subset,RasterStack-method`
+#subsetting biovar 1 , and averaging it
+subset1 <- subset(stack_crop,c(1,12,23,34,45,56,67,78,89,100,111))
+plot(subset1)
+mean1 <- calc(subset1,fun = mean)
+plot(mean1)
+
+#now do the rest of them the same way 
+subset2 <- subset(stack_crop,c(2,13,24,35,46,57,68,79,90,101,112))
+subset3 <- subset(stack_crop,c(3,14,25,36,47,58,69,80,91,102,113))
+subset8 <- subset(stack_crop,c(4,15,26,37,48,59,70,81,92,103,114))
+subset9 <- subset(stack_crop,c(5,16,27,38,49,60,71,82,93,104,115))
+subset10 <- subset(stack_crop,c(6,17,28,39,50,61,72,83,94,105,116))
+subset11 <- subset(stack_crop,c(7,18,29,40,51,62,73,84,95,106,117))
+subset12 <- subset(stack_crop,c(8,19,30,41,52,63,74,85,96,107,118))
+subset14 <- subset(stack_crop,c(9,20,31,42,53,64,75,86,97,108,119))
+subset15 <- subset(stack_crop,c(10,21,32,43,54,65,76,87,98,109,120))
+subset18 <- subset(stack_crop,c(11,22,33,44,55,66,77,88,99,110,121))
+
+mean2 <- calc(subset2,fun = mean)
+mean3 <- calc(subset3,fun = mean)
+mean8 <- calc(subset8,fun = mean)
+mean9 <- calc(subset9,fun = mean)
+mean10 <- calc(subset10,fun = mean)
+mean11 <- calc(subset11,fun = mean)
+mean12 <- calc(subset12,fun = mean)
+mean14 <- calc(subset14,fun = mean)
+mean15 <- calc(subset15,fun = mean)
+mean18 <- calc(subset18,fun = mean)
+
+plot(mean2)
+stack_meanvars <- raster::stack(c(mean1,mean2,mean3,mean8,mean9,mean10,
+                                  mean11,mean12,mean14,mean15,mean18))
+
+plot(stack_meanvars)
+
+#make a model with the stacked means / and 11 variables 
+#if it works go back in and change the names to the same as bioclim names 
+model_mean <- bioclim(x = stack_meanvars,
+                      p = weislander.pts)
+plot(model_mean)
+predict_mean <- predict(object = model_mean,
+                        x = stack_meanvars,
+                        ext = extent(ca.data))
+plot(predict_mean, main = "11 prism / weis - for 25-35" )
+
+#try to project into the current 
+#first make the names the same 
+names(stack_meanvars) <- names(bioclim_11.data)
+
+current_mean_prediction <- predict(object = model_mean,
+                                   x = bioclim_11.data,
+                                   ext = extent(ca.data))
+plot(current_mean_prediction)
 df_1925 <- as.data.frame(stack_vars_2526)
 class(df_1925)
 ?rbind
@@ -293,38 +373,29 @@ bind <- rbind(as.matrix(vars_1925),
 
 plot(bind)
 
-#running sdm using bind (the dataframe with 1925/1926 climate data )
-
-?bioclim
+#model with a grd file / did not work 
 prism_grd <- system.file("Data/PRISM/prism_variables.grd",package = "raster")
 model_1 <- bioclim(x =prism_grd,p=weislander.pts)
 
-#df to matrix 
-class(bind)
-bind<- as.matrix(bind)
+
 model_df <- bioclim(bind,p = weislander.pts)
 
 
-#model Production using stack_vars_2526 with all 38 variables 
-model <- bioclim(stack_vars_2526, p= weislander.pts)
-plot(model)
-predict_stack <- dismo::predict(object = model,
-                                          x = stack_vars_2526,
-                                          ext = extent(ca.data))
-plot(predict_stack)
+
 #model with just one year, 1925 
-model_25 <- bioclim(biovar_1925, p = weislander.pts)
+model_25 <- bioclim(vars_1925, p = weislander.pts)
 predict_25 <- predict(object = model_25,
-                      x = biovar_1925,
+                      x = vars_1925,
                       ext = extent(ca.data))
-plot(predict_25, main = "prism 1925 only / past")
+plot(predict_25, main = "prism 1925 only / weis")
 
 #predicting into the present with bioclim / weislander
 model_25_present <- bioclim(bioclim_11.data, p = weislander.pts)
 predict_model_25_present <- predict(object = model_25_present,
-                                    x = bioclim.data,
+                                    x = bioclim_11.data,
                                     ext = extent(ca.data))
-plot(predict_model_25_present)
+plot(predict_model_25_present, main = "current / with bioclim",xlab = "Longtiude",
+     ylab = "Latitude")
 
 
 #model with all years 1925 - 1935 
@@ -333,6 +404,9 @@ predict_all <- predict(object = model_all,
                        x = stack_all,
                        ext = extent(ca.data))
 plot(predict_all)
+
+#future
+
 
 #project to the current will always look the same if creating a model
 # each time you make the prediction? 

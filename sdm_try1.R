@@ -82,10 +82,12 @@ bioclim_11.data <- getData(name = "worldclim",
                         res = 2.5,
                         path = "input_11/")
 
-bioclim_11.data <- dropLayer(bioclim.data, c(4,5,6,7,13,16,17,19))
+bioclim_11.data <- dropLayer(bioclim_11.data, c(4,5,6,7,13,16,17,19))
 
 #now equals 11  
 nlayers(bioclim_11.data)
+names(bioclim_11.data)
+bioclim_11.data <- raster::crop(bioclim_11.data, ca.data)
 plot(bioclim_11.data)
 
 #creating model for calveg plus 11 variables from bioclim 
@@ -184,7 +186,7 @@ cmip5_11.data <- getData('CMIP5',
                       model = 'AC',
                       year = 50,
                       path = "input_11/")
-cmip5_11.data <- dropLayer(cmip5.data, c(4,5,6,7,13,16,17,19))
+cmip5_11.data <- dropLayer(cmip5_11.data, c(4,5,6,7,13,16,17,19))
 nlayers(cmip5_11.data)
 
 #weislander prediction using the 11 variables in cmip5 
@@ -193,11 +195,17 @@ model_weislander_cmip11 <- bioclim(cmip5_11.data,
 predict_weislander_cmip11 <- predict(object = model_weislander_cmip11,
                                      x = cmip5_11.data,
                                      ext = extent(ca.data))
-plot(predict_weislander_cmip11, main = "Wieslander and 11 Cmip Variables")
+plot(predict_weislander_cmip11, main = "Future / Wieslander and 11 Cmip Variables")
 
+model_calveg_future <- bioclim(cmip5_11.data, p = all_calveg.pts)
+predict_cal_future <- predict(object = model_calveg_future,
+                              x = cmip5_11.data,
+                              ext = extent(ca.data))
+plot(predict_cal_future, main = "calveg / future projection")
 par(mfrow = c(2,1))
 par(mfrow = c(1,1))
 
+#overlay the california shapefile 
 
 
 #pushing weislander projection into the future 
