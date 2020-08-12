@@ -42,7 +42,7 @@ summary(all_calveg.pts)
 
 #loading county map 
 ca.data <- readOGR("Data/CA_Counties")
-plot(ca.data,axes = TRUE, col = "grey95")
+plot(ca.data,axes = TRUE, fill = NA)
 summary(ca.data)
 plot(calveg.data,add = TRUE)
 
@@ -104,12 +104,14 @@ plot(predict_calveg_11,
      xlab = "Longtiude",
      ylab = "Latitude",)
 
-predict_calvef_future <- predict(model_all_11,
+model_calveg_future <- bioclim(x = cmip5_11.data,
+                               p = all_calveg.pts)
+predict_calvef_future <- predict(object = model_calveg_future,
                                  x = cmip5_11.data,
                                  ext = extent(ca.data))
 plot(predict_calvef_future,
-     xlab = "Longtiude",
-     ylab = "Latitude")
+        xlab = "Longtiude",
+        ylab = "Latitude")
 
 --------------------------------------------------
 #notes and extra code 
@@ -158,25 +160,6 @@ summary(weislander.pts)
 
 #now try to load CMIP Data to predict Weislander distribution 
 
-?getData
-cmip5.data <- getData('CMIP5',
-                      var = 'bio',
-                      res = 2.5,
-                      rcp = 45,
-                      model = 'AC',
-                      year = 50,
-                      path = "input/")
-
-names(cmip5.data)
-model_weislander_cmip <- bioclim(cmip5.data,
-                                 p = weislander.pts)
-plot(model_weislander_cmip)
-predict_weislander_cmip <- dismo::predict(object = model_weislander_cmip,
-                                          x = cmip5.data,
-                                          ext = extent(ca.data))
-plot(predict_weislander_cmip, main = "Weislander and 19 CMIP Data")
-
-
 #pulling the 11 variables from the cmip5 data 
 
 cmip5_11.data <- getData('CMIP5',
@@ -202,6 +185,7 @@ predict_cal_future <- predict(object = model_calveg_future,
                               x = cmip5_11.data,
                               ext = extent(ca.data))
 plot(predict_cal_future, main = "calveg / future projection")
+
 par(mfrow = c(2,1))
 par(mfrow = c(1,1))
 

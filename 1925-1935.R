@@ -380,7 +380,15 @@ model_1 <- bioclim(x =prism_grd,p=weislander.pts)
 
 model_df <- bioclim(bind,p = weislander.pts)
 
+#see if this helps with error in overlaying county map 
+# and shapefiles
+install.packages("arulesViz")
 
+#load Ca state Map 
+state.data <- readOGR("Data/Ca State")
+plot(state.data,add = TRUE)
+state.data <- spTransform(state.data,crs(ca.data))
+#historical plots 
 
 #model with just one year, 1925 
 model_25 <- bioclim(vars_1925, p = weislander.pts)
@@ -389,15 +397,6 @@ predict_25 <- predict(object = model_25,
                       ext = extent(ca.data))
 plot(predict_25, main = "prism 1925 only / weis")
 
-#predicting into the present with bioclim / weislander
-model_25_present <- bioclim(bioclim_11.data, p = weislander.pts)
-predict_model_25_present <- predict(object = model_25_present,
-                                    x = bioclim_11.data,
-                                    ext = extent(ca.data))
-plot(predict_model_25_present, main = "current / with bioclim",xlab = "Longtiude",
-     ylab = "Latitude")
-
-
 #model with all years 1925 - 1935 
 model_all <- bioclim(stack_all, p = weislander.pts)
 predict_all <- predict(object = model_all,
@@ -405,8 +404,39 @@ predict_all <- predict(object = model_all,
                        ext = extent(ca.data))
 plot(predict_all)
 
-#future
+
+#predicting into the present with bioclim / weislander
+#present calveg map 
+model_25_present <- bioclim(bioclim_11.data, p = weislander.pts)
+predict_model_25_present <- predict(object = model_25_present,
+                                    x = bioclim_11.data,
+                                    ext = extent(ca.data))
+class(ca.data)
+plot(predict_model_25_present,
+     main = "current weis / with bioclim",
+     xlab = "Longtiude",
+     ylab = "Latitude")
+
+crs(ca.data)
+crs(state.data)
 
 
-#project to the current will always look the same if creating a model
-# each time you make the prediction? 
+
+par(new = TRUE)
+plot(ca.data)
+plot(state.data)
+plot(state.data, add = TRUE)
+plot(ca.data, add = TRUE)
+plot(calveg.data,add = TRUE)
+
+plot(predict_calveg_11,
+     main = "Calveg + 11 Bioclim Variables",
+     xlab = "Longtiude",
+     ylab = "Latitude",)
+
+
+#future weis and calveg 
+plot(predict_weislander_cmip11, main = "Future / Wieslander and 11 Cmip Variables")
+
+plot(predict_calvef_future, main = "calveg / future projection")
+
