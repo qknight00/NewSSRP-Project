@@ -14,7 +14,13 @@ wgs84.crs <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
 dir.create(path = "input")
 dir.create(path = "output")
 
-# pulling and plotting bioclim data 
+#pulling historical climate data : prism data 
+
+
+
+
+#pulling and plotting bioclim data 
+#bioclim is the current climate data 
 bioclim.data <- getData(name = "worldclim",
                         var = 'bio', 
                         res = 2.5,
@@ -46,10 +52,10 @@ ca.data <- spTransform(ca.data,crs(bioclim.data))
 
 weislander.data <- readOGR("Data/Weislander_Sage")
 summary(weislander.data)
+
+
 #pulling lat/lon data for weislander dataset
 N = 300
-M = 500
-O = 1000
 weislander.data_wgs84 <- spTransform(weislander.data, wgs84.crs) 
 weislander.pts <- spsample(weislander.data_wgs84, N, type = 'random')
 weislander.pts@coords
@@ -58,7 +64,7 @@ weislander.lat <- weislander.pts@coords[,'y']
 summary(weislander.pts)
 
 
-
+#for plotting multiple graphs at a time 
 par(mfrow = c(2,1))
 par(mfrow = c(1,1))
 

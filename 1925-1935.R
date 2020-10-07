@@ -69,6 +69,7 @@ ppt1933.stack <- raster::stack(ppt1933.files)
 ppt1934.stack <- raster::stack(ppt1934.files)
 ppt1935.stack <- raster::stack(ppt1935.files)
 
+#go from 13 dimensions to 12 dimensions
 ppt1925.stack <- dropLayer(ppt1925.stack,1)
 ppt1926.stack <- dropLayer(ppt1926.stack,1)
 ppt1927.stack <- dropLayer(ppt1927.stack,1)
