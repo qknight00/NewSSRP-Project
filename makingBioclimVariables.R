@@ -117,4 +117,3 @@ predict_future <- predict(object = model_weis_11,
 plot(predict_future,
      xlab = "Longtiude",
      ylab = "Latitude")
-
