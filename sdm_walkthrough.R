@@ -73,7 +73,7 @@ print(names(bioclim.data))
 
 #crop bioclim to the extent of california 
 bioclim.data <- crop(bioclim.data,extent(ca.outline))
-
+plot(bioclim.data)
 #looking at 11 vars 
 predictors <- raster::subset(bioclim.data,c("MAT", "MDR", "I", 
                                             "MTWQ","MTDQ","MTWaQ", 
@@ -105,3 +105,28 @@ head(sdmdata)
 #collinearity of predictors 
 
 pairs(sdmdata[,2:length(sdmdata)], cex = 0.1, fig=TRUE)
+?pairs
+
+#vbif collinearity 
+install.packages("usdm")
+library(usdm)
+?usdm
+vifstep(select(sdmdata, -Y), th=10)
+?vifstep
+#linear model sdm 
+
+sdm_lm <- lm(Y ~ MTWQ, data = sdmdata)
+plot(sdmdata$MTWQ,sdmdata$Y,
+     main = "CSS Linear SDM",
+     xlab = "Mean Temp of Warmest Quarter",
+     ylab = "Presence/Absence")
+abline(sdm_lm)
+
+#using MAT
+sdm_lm <- lm(Y ~ MAT, data = sdmdata)
+plot(sdmdata$MAT,sdmdata$Y,
+     main = "CSS Linear SDM",
+     xlab = "Mean Annual Temperature",
+     ylab = "Presence/Absence")
+abline(sdm_lm)
+       
