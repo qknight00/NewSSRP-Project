@@ -1,5 +1,5 @@
 #going through avery SDM walkthrough 
-
+#packages currently installed : raster, spp, usdm
 #Data Preperation 
 #load species occurance data 
 
@@ -99,7 +99,7 @@ Y <- c(rep(1,nrow(presvals)),rep(0,nrow(absvals)))
 
 sdmdata <- data.frame(cbind(Y, rbind(presvals,absvals)))
 head(sdmdata)
-
+head(Y)
 
 
 #collinearity of predictors 
@@ -110,23 +110,61 @@ pairs(sdmdata[,2:length(sdmdata)], cex = 0.1, fig=TRUE)
 #vbif collinearity 
 install.packages("usdm")
 library(usdm)
-?usdm
-vifstep(select(sdmdata, -Y), th=10)
-?vifstep
-#linear model sdm 
 
-sdm_lm <- lm(Y ~ MTWQ, data = sdmdata)
-plot(sdmdata$MTWQ,sdmdata$Y,
+vifstep(subset(sdmdata, select = -Y), th=10)
+#removing these 4 variables MAT MTCQ MTWaQ MTDQ improve collinearity 
+#so we make models without them
+predictors <- raster::subset(bioclim.data,c("MDR", "I", 
+                                            "MTWQ"
+                                            , "AP","PDM",
+                                            "PS","PWQ"))
+presvals <- raster::extract(predictors,weislander.pts)
+backgr <- randomPoints(predictors,500)
+absvals <- raster::extract(predictors,500)
+Y <- c(rep(1,nrow(presvals)),rep(0,nrow(absvals)))
+sdmdata <- data.frame(cbind(Y, rbind(presvals,absvals)))
+
+pairs(sdmdata[,2:length(sdmdata)], cex = 0.1, fig=TRUE)
+?pairs
+#producing the SDM 
+
+#linear model 
+
+sdm_lm <- lm(Y ~ MDR , data = sdmdata)
+
+plot(sdmdata$MDR, sdmdata$Y, 
      main = "CSS Linear SDM",
-     xlab = "Mean Temp of Warmest Quarter",
-     ylab = "Presence/Absence")
+     xlab = "MDR ",
+     ylab = "Presence/Absence"
+)
 abline(sdm_lm)
 
-#using MAT
-sdm_lm <- lm(Y ~ MAT, data = sdmdata)
-plot(sdmdata$MAT,sdmdata$Y,
-     main = "CSS Linear SDM",
-     xlab = "Mean Annual Temperature",
-     ylab = "Presence/Absence")
-abline(sdm_lm)
+#function to produce SDM 
+project.sdm <- function(prediction, plotName){
+  sp::plot(prediction, main = plotName)
+  sp::plot(ca.outline, add = T)
+  points(weislander.pts, pch = 16, cex = .4)
+  legend("bottomright", legend = "Coastal Sage Scrub", pch = 16, cex=.4)
+}
+
+prediction_glm <- raster::predict(bioclim.stack, sdm_glm)
        
+
+
+
+#using this to allow only one graph to show at a time 
+par(mfrow=c(1,1))
+
+#sdm using bioclim
+
+sdm_bioclim <- bioclim(presvals)
+response(sdm_bioclim)
+prediction_bioclim <- dismo::predict(sdm_bioclim,bioclim.data)
+project.sdm(prediction_bioclim,"BIOCLIM SDM (CSS)")
+
+#sdm using maxent 
+system.file("java", package="dismo")
+install.packages("maxent")
+?maxent
+sdm_maxent <- maxent(predictors,weislander.pts)
+prediction_maxent <- dismo::predict(sdm_maxent,bioclim.data)
