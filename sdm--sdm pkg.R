@@ -97,10 +97,10 @@ sdmdataPrep <- function(pres_lonlat.df,
 
 #################### PART I ###########################################
 # Make SDM from historical data (weislander) with historical climate (prism)
-# and project them to current time using current climate (bioclim)
+# and project them to current time using current climate (worldclim)
 
-#pulling and plotting bioclim data 
-#bioclim is the current climate data 
+#pulling and plotting worldclim data 
+#worldclim is the current climate data 
 # we put it in a brick so that R sees this as multiple rasters, instead of 
 # 1 raster with multiple bands. i'm not sure if it makes a difference but I know 
 # how to work with raster stacks/bricks better than raster bands
@@ -178,15 +178,16 @@ getVarImp(histo_sdm)
 
 
 ## PROJECT TO PRESENT DAY ###
-## Now let's read in Bioclim data and project the ensemble to present day, 
+## Now let's read in worldclim data and project the ensemble to present day, 
 # and compare it with CALVEG occ
 
-bioclim.stack <- brick("Data/PRISM/bioclim1-19.grd")
-bioclim.stack <- crop(bioclim.stack, extent(ca.shp_wgs84))
+worldclim.stack <- raster::stack(
+  list.files("Data/WorldClim2-5/", pattern = "*.bil", full.names = T))
+worldclim.stack <- crop(worldclim.stack, extent(ca.shp_wgs84))
 calveg.shp <- readOGR("Data/CALVEG_Sage/Total_Sage.shp")
 calveg.shp_wgs84 <- spTransform(calveg.shp, wgs84.crs)
 
-sdm_current.prediction <- sdm::ensemble(histo_sdm, bioclim.stack, 
+sdm_current.prediction <- sdm::ensemble(histo_sdm, worldclim.stack, 
                               setting=list(method="weighted", stat="TSS"))
 
 # Let's plot the SDM ensemble prediction
@@ -234,11 +235,12 @@ rm(list = delete_these)
 
 #################### PART II ###########################################
 ## Look at role of human impacts on calveg in present time
-# We'll make an SDM using current occurrences (calveg), current climate (bioclim),
+# We'll make an SDM using current occurrences (calveg), current climate (worldclim),
 # and current human impact
 
-bioclim.stack <- brick("Data/PRISM/bioclim1-19.grd")
-bioclim.stack <- crop(bioclim.stack, extent(ca.shp_wgs84))
+worldclim.stack <- raster::stack(
+  list.files("Data/WorldClim2-5/", pattern = "*.bil", full.names = T))
+worldclim.stack <- crop(worldclim.stack, extent(ca.shp_wgs84))
 
 calveg.shp <- readOGR("Data/CALVEG_Sage/Total_Sage.shp")
 calveg.shp_wgs84 <- spTransform(calveg.shp, wgs84.crs)
@@ -271,13 +273,13 @@ hf.stack_smaller <- crop(hf.stack_raw, c(-1.1e7, -.7e7, 2e6, 6e6))
 hf.stack_wgs84 <- projectRaster(hf.stack_smaller, crs = wgs84.crs)
 
 # Need to resample because the raster's have different origins
-hf.stack <- resample(hf.stack_wgs84, bioclim.stack)
+hf.stack <- resample(hf.stack_wgs84, worldclim.stack)
 
-bioclim_hf.stack <- addLayer(bioclim.stack, hf.stack)
+worldclim_hf.stack <- addLayer(worldclim.stack, hf.stack)
 
 curr.dataprep.results <- sdmdataPrep(pres_lonlat.df = pres_calveg.df, 
                                      abs_lonlat.df = abs_calveg.df,
-                                     predictor.stack = bioclim_hf.stack, 
+                                     predictor.stack = worldclim_hf.stack, 
                                      test_pres.df = pres_calveg_test.df,
                                      test_abs.df = abs_calveg_test.df,
                                      removeCollinearity = T)
@@ -285,7 +287,7 @@ curr.dataprep.results <- sdmdataPrep(pres_lonlat.df = pres_calveg.df,
 curr.dataprep.results$vif.results
 
 curr_sdmdata <- curr.dataprep.results$sdmdata
-bioclim_hf_uncorr.stack <- curr.dataprep.results$uncorr.stack
+worldclim_hf_uncorr.stack <- curr.dataprep.results$uncorr.stack
 
 
 # ENSEMBLE let's make an ensemble model of all of them
@@ -299,7 +301,7 @@ curr_sdmFormula = reformulate(curr_predictor.names, response="Y")
 curr_sdm <- sdm::sdm(curr_sdmFormula, data = curr_sdmdata, methods=c("glm","gam","rf"))
 
 # This ensemble is a prediction, it is no longer an SDM anymore
-curr_ensemble <- sdm::ensemble(curr_sdm, bioclim_hf_uncorr.stack, 
+curr_ensemble <- sdm::ensemble(curr_sdm, worldclim_hf_uncorr.stack, 
                               setting=list(method="weighted", stat="TSS"))
 
 # Let's plot the SDM ensemble prediction
