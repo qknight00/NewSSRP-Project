@@ -21,7 +21,7 @@ library(dplyr)
 # This is a CRS where the coordinates are in longitude and latitude
 wgs84.crs <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
 
-ca.shp <- readOGR("Data/CA_Counties/")
+ca.shp <- readOGR("Data/CA_Counties")
 ca.shp_wgs84 <- spTransform(ca.shp, wgs84.crs) 
 
 ## First we'll build an SDM on historic climate and weislander dist and then 
@@ -111,7 +111,7 @@ prism.stack <- brick("Data/PRISM/prism_variables/prism_variables.grd")
 # uhhh let's crop climate data to all of CA
 prism.stack <- crop(prism.stack, extent(ca.shp_wgs84))
 
-weislander.shp <- readOGR("Data/Weislander_Sage/")
+weislander.shp <- readOGR("Data/Weislander_Sage")
 weis.shp_wgs84 <- spTransform(weislander.shp, wgs84.crs) 
 totalweislander.shp <- readOGR("Data/WeislanderVeg")
 total_weis.shp_wgs84 <- spTransform(totalweislander.shp, wgs84.crs) 
@@ -153,7 +153,6 @@ histo_sdmdata <- histo_dataprep.results$sdmdata
 prism_uncorr.stack <- histo_dataprep.results$uncorr.stack
 
 
-
 # ENSEMBLE let's make an ensemble model of all of them
 # a number of methods can be used, see documentation, but they include 
 # weighted mean, unweighted mean, median, entropy, etc
@@ -162,19 +161,40 @@ prism_uncorr.stack <- histo_dataprep.results$uncorr.stack
 predictor.names <- histo_sdmdata@features.name
 histo_sdmFormula = reformulate(predictor.names, response="Y")
 
+#to overcome rf error use:
+sdm::installAll()
 histo_sdm <- sdm::sdm(histo_sdmFormula, data = histo_sdmdata, methods=c("glm","gam","rf"))
+##note that the "rf" gave a does not exist error and had to be removed from methods()
 
 # This ensemble is a prediction, it is no longer an SDM anymore
-histo_ensemble <- sdm::ensemble(histo_sdm, prism_uncorr.stack, 
+histo_ensemble <- sdm::ensemble(histo_sdm , prism_uncorr.stack,
                               setting=list(method="weighted", stat="TSS"))
 
+?ensemble
 # Let's plot the SDM ensemble prediction
 sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
 sp::plot(ca.shp_wgs84, add = T)
 sp::plot(weis.shp_wgs84, add =T)
-legend("bottomright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
+legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 
-getVarImp(histo_sdm)
+#example code for production of an image of graph 
+png(filename = "Images/historical_1121no.png",
+    width=1500, height=1500, res=200)
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
+sp::plot(ca.shp_wgs84, add = T)
+sp::plot(weis.shp_wgs84, add =T)
+legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
+dev.off()
+
+#image with no overlay
+png(filename = "Images/historical_1121no.png",
+    width=1500, height=1500, res=200)
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
+sp::plot(ca.shp_wgs84, add = T)
+legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
+dev.off()
+     
+print(getVarImp(histo_sdm))
 
 
 ## PROJECT TO PRESENT DAY ###
@@ -191,10 +211,24 @@ sdm_current.prediction <- sdm::ensemble(histo_sdm, worldclim.stack,
                               setting=list(method="weighted", stat="TSS"))
 
 # Let's plot the SDM ensemble prediction
+png(filename = "Images/historic_to_present_1121.png",
+    width=1500, height=1500, res=200)
 sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM")
 sp::plot(ca.shp_wgs84, add = T)
 sp::plot(calveg.shp_wgs84, add =T)
-legend("bottomright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
+legend("topright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
+dev.off()
+
+png(filename = "Images/historic_to_present_1121no.png",
+    width=1500, height=1500, res=200)
+sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM")
+sp::plot(ca.shp_wgs84, add = T)
+legend("topright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
+dev.off()
+
+
+getVarImp(sdm_current.prediction)
+#could not get var imp for prediction model 
 
 ## PROJECT TO FUTURE ###
 
@@ -209,6 +243,17 @@ sdm_future.prediction <- sdm::ensemble(histo_sdm, cmip5_2050.stack,
 sp::plot(sdm_future.prediction, main = "Historic --> Future Ensemble SDM")
 sp::plot(ca.shp_wgs84, add = T)
 
+png(filename = "Images/future_1121.png",
+    width=1500, height=1500, res=200)
+sp::plot(sdm_future.prediction, main = "Historic --> Future Ensemble SDM")
+sp::plot(ca.shp_wgs84, add = T)
+dev.off()
+
+#no overlay
+png(filename = "Images/future_1121no.png",
+    width=1500, height=1500, res=200)
+sp::plot(sdm_future.prediction, main = "Historic --> Future Ensemble SDM")
+dev.off()
 
 # compare the future to the historic
 par(mfrow=c(1,2))
@@ -270,13 +315,21 @@ abs_calveg_test.df <- dplyr::setdiff(data.frame(abs_calveg_test.pts_backr@coords
 # Let's read in human impact raster and add it it to stack of predictors
 hf.stack_raw <- raster("Data/HumanFootprint/2009/HFP2009.tif")
 hf.stack_smaller <- crop(hf.stack_raw, c(-1.1e7, -.7e7, 2e6, 6e6))
+#got error when doing the earilier one
+hf.stack_smaller <- crop(hf.stack_raw,extent(ca.shp_wgs84))
 hf.stack_wgs84 <- projectRaster(hf.stack_smaller, crs = wgs84.crs)
 
 # Need to resample because the raster's have different origins
+#this did not work
 hf.stack <- resample(hf.stack_wgs84, worldclim.stack)
+
+#this works though!
+hf.stack <- resample(hf.stack_smaller, worldclim.stack)
+
 
 worldclim_hf.stack <- addLayer(worldclim.stack, hf.stack)
 
+#now there is an error here, go back up and look at the hf.stack
 curr.dataprep.results <- sdmdataPrep(pres_lonlat.df = pres_calveg.df, 
                                      abs_lonlat.df = abs_calveg.df,
                                      predictor.stack = worldclim_hf.stack, 
