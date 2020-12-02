@@ -323,7 +323,7 @@ hf.stack_wgs84 <- projectRaster(hf.stack_smaller, crs = wgs84.crs)
 #this did not work
 hf.stack <- resample(hf.stack_wgs84, worldclim.stack)
 
-#this works though!
+#this works though!but not in the future lines
 hf.stack <- resample(hf.stack_smaller, worldclim.stack)
 
 
