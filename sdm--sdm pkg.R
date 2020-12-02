@@ -106,7 +106,7 @@ sdmdataPrep <- function(pres_lonlat.df,
 # how to work with raster stacks/bricks better than raster bands
 
 # historical PRISM Data
-prism.stack <- brick("Data/PRISM/prism_variables/prism_variables.grd")
+prism.stack <- brick("Data/PRISM/1920-1940/Bioclimatic19 (1km)/prism2040_bioclim19.grd")
 
 # uhhh let's crop climate data to all of CA
 prism.stack <- crop(prism.stack, extent(ca.shp_wgs84))
@@ -171,8 +171,8 @@ histo_ensemble <- sdm::ensemble(histo_sdm, prism_uncorr.stack,
 # Let's plot the SDM ensemble prediction
 sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
 sp::plot(ca.shp_wgs84, add = T)
-sp::plot(weis.shp_wgs84, add =T)
-legend("bottomright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
+#sp::plot(weis.shp_wgs84, add =T)
+#legend("bottomright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 
 getVarImp(histo_sdm)
 
@@ -181,20 +181,31 @@ getVarImp(histo_sdm)
 ## Now let's read in worldclim data and project the ensemble to present day, 
 # and compare it with CALVEG occ
 
-worldclim.stack <- raster::stack(
-  list.files("Data/WorldClim2-5/", pattern = "*.bil", full.names = T))
-worldclim.stack <- crop(worldclim.stack, extent(ca.shp_wgs84))
+prism_1995_2015.stack <- raster::stack("Data/PRISM/1995-2015/Bioclimatic19 (1km)/prism9515_bioclim19.grd")
+prism_1995_2015.stack <- crop(prism_1995_2015.stack, extent(ca.shp_wgs84))
 calveg.shp <- readOGR("Data/CALVEG_Sage/Total_Sage.shp")
 calveg.shp_wgs84 <- spTransform(calveg.shp, wgs84.crs)
 
-sdm_current.prediction <- sdm::ensemble(histo_sdm, worldclim.stack, 
+sdm_current.prediction <- sdm::ensemble(histo_sdm, prism_1995_2015.stack, 
                               setting=list(method="weighted", stat="TSS"))
 
 # Let's plot the SDM ensemble prediction
 sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM")
 sp::plot(ca.shp_wgs84, add = T)
-sp::plot(calveg.shp_wgs84, add =T)
-legend("bottomright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
+#sp::plot(calveg.shp_wgs84, add =T)
+#legend("bottomright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
+
+
+# Let's put the two previous figures into one:
+par(mfrow=c(1,2))
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
+sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM")
+
+par(mfrow=c(1,1))
+prediction_dif <- sdm_current.prediction - histo_ensemble
+sp::plot(prediction_dif, main = "Change in Habitat Suitability (1930s-2010s")
+sp::plot(ca.shp_wgs84, add = T)
+
 
 ## PROJECT TO FUTURE ###
 
