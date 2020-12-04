@@ -187,10 +187,14 @@ legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 dev.off()
 
 #image with no overlay
-png(filename = "Images/historical_1121no.png",
+png(filename = "Images/historical_12_2_png",
     width=1500, height=1500, res=200)
 sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
 sp::plot(ca.shp_wgs84, add = T)
+par(mfrow=c(1,2))
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
+sp::plot(ca.shp_wgs84, add = T)
+sp::plot(weis.shp_wgs84, add =T)
 legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 dev.off()
      
@@ -226,9 +230,6 @@ sp::plot(ca.shp_wgs84, add = T)
 legend("topright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
 dev.off()
 
-
-getVarImp(sdm_current.prediction)
-#could not get var imp for prediction model 
 
 ## PROJECT TO FUTURE ###
 
@@ -315,16 +316,20 @@ abs_calveg_test.df <- dplyr::setdiff(data.frame(abs_calveg_test.pts_backr@coords
 # Let's read in human impact raster and add it it to stack of predictors
 hf.stack_raw <- raster("Data/HumanFootprint/2009/HFP2009.tif")
 hf.stack_smaller <- crop(hf.stack_raw, c(-1.1e7, -.7e7, 2e6, 6e6))
-#got error when doing the earilier one
-hf.stack_smaller <- crop(hf.stack_raw,extent(ca.shp_wgs84))
-hf.stack_wgs84 <- projectRaster(hf.stack_smaller, crs = wgs84.crs)
+
+#got error when doing the earlier one
+#hf.stack_smaller <- crop(hf.stack_raw,extent(ca.shp_wgs84))
+#hf.stack_wgs84 <- projectRaster(hf.stack_smaller, crs = wgs84.crs)
 
 # Need to resample because the raster's have different origins
 #this did not work
-hf.stack <- resample(hf.stack_wgs84, worldclim.stack)
+
+hf.stack <- raster::resample(hf.stack_wgs84, worldclim.stack$bio1)
+
+
 
 #this works though!but not in the future lines
-hf.stack <- resample(hf.stack_smaller, worldclim.stack)
+#hf.stack <- resample(hf.stack_smaller, worldclim.stack)
 
 
 worldclim_hf.stack <- addLayer(worldclim.stack, hf.stack)
