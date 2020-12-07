@@ -162,7 +162,7 @@ predictor.names <- histo_sdmdata@features.name
 histo_sdmFormula = reformulate(predictor.names, response="Y")
 
 #to overcome rf error use:
-sdm::installAll()
+# sdm::installAll()
 histo_sdm <- sdm::sdm(histo_sdmFormula, data = histo_sdmdata, methods=c("glm","gam","rf"))
 ##note that the "rf" gave a does not exist error and had to be removed from methods()
 
@@ -287,12 +287,10 @@ rm(list = delete_these)
 
 #################### PART II ###########################################
 ## Look at role of human impacts on calveg in present time
-# We'll make an SDM using current occurrences (calveg), current climate (worldclim),
+# We'll make an SDM using current occurrences (calveg), current climate (PRISM),
 # and current human impact
-
-worldclim.stack <- raster::stack(
-  list.files("Data/WorldClim2-5/", pattern = "*.bil", full.names = T))
-worldclim.stack <- crop(worldclim.stack, extent(ca.shp_wgs84))
+prism_1995_2015.stack <- raster::stack("Data/PRISM/1995-2015/Bioclimatic19 (1km)/prism9515_bioclim19.grd")
+prism_1995_2015.stack <- crop(prism_1995_2015.stack, extent(ca.shp_wgs84))
 
 calveg.shp <- readOGR("Data/CALVEG_Sage/Total_Sage.shp")
 calveg.shp_wgs84 <- spTransform(calveg.shp, wgs84.crs)
@@ -320,26 +318,21 @@ abs_calveg_test.df <- dplyr::setdiff(data.frame(abs_calveg_test.pts_backr@coords
                                    data.frame(abs_calveg_test.pts_backr[calveg.shp_wgs84]@coords))
 
 # Let's read in human impact raster and add it it to stack of predictors
-hf.stack_raw <- raster("Data/HumanFootprint/2009/HFP2009.tif")
-hf.stack_smaller <- crop(hf.stack_raw, c(-1.1e7, -.7e7, 2e6, 6e6))
-#got error when doing the earilier one
-hf.stack_smaller <- crop(hf.stack_raw,extent(ca.shp_wgs84))
-hf.stack_wgs84 <- projectRaster(hf.stack_smaller, crs = wgs84.crs)
+# I used this in bash shell to reproject hfp2009 because it's way faster:
+# gdalwarp -t_srs "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0" HFP2009.tif HFP2009_wgs84.tif
+hf.stack_raw <- raster("Data/HumanFootprint/2009/HFP2009_wgs84.tif")
+hf_ca.stack <- crop(hf.stack_raw,extent(ca.shp_wgs84))
 
 # Need to resample because the raster's have different origins
 #this did not work
-hf.stack <- resample(hf.stack_wgs84, worldclim.stack)
+hf.stack <- resample(hf_ca.stack, prism_1995_2015.stack)
 
-#this works though!but not in the future lines
-hf.stack <- resample(hf.stack_smaller, worldclim.stack)
-
-
-worldclim_hf.stack <- addLayer(worldclim.stack, hf.stack)
+prism_hf.stack <- addLayer(prism_1995_2015.stack, hf.stack)
 
 #now there is an error here, go back up and look at the hf.stack
 curr.dataprep.results <- sdmdataPrep(pres_lonlat.df = pres_calveg.df, 
                                      abs_lonlat.df = abs_calveg.df,
-                                     predictor.stack = worldclim_hf.stack, 
+                                     predictor.stack = prism_hf.stack, 
                                      test_pres.df = pres_calveg_test.df,
                                      test_abs.df = abs_calveg_test.df,
                                      removeCollinearity = T)
@@ -347,7 +340,7 @@ curr.dataprep.results <- sdmdataPrep(pres_lonlat.df = pres_calveg.df,
 curr.dataprep.results$vif.results
 
 curr_sdmdata <- curr.dataprep.results$sdmdata
-worldclim_hf_uncorr.stack <- curr.dataprep.results$uncorr.stack
+prism_hf_uncorr.stack <- curr.dataprep.results$uncorr.stack
 
 
 # ENSEMBLE let's make an ensemble model of all of them
