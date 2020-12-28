@@ -162,46 +162,60 @@ predictor.names <- histo_sdmdata@features.name
 histo_sdmFormula = reformulate(predictor.names, response="Y")
 
 #to overcome rf error use:
-sdm::installAll()
+# sdm::installAll()
 histo_sdm <- sdm::sdm(histo_sdmFormula, data = histo_sdmdata, methods=c("glm","gam","rf"))
 ##note that the "rf" gave a does not exist error and had to be removed from methods()
 
 # This ensemble is a prediction, it is no longer an SDM anymore
 histo_ensemble <- sdm::ensemble(histo_sdm , prism_uncorr.stack,
-                              setting=list(method="weighted", stat="TSS"))
+                              setting=list(method="weighted", stat="TSS") ,overwrite =TRUE)
 
 ?ensemble
 # Let's plot the SDM ensemble prediction
-sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
+?plot
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM",
+         xlab= "Longitude",
+         ylab = "Latitude")
 sp::plot(ca.shp_wgs84, add = T)
 
-#sp::plot(weis.shp_wgs84, add =T)
-#legend("bottomright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
+sp::plot(weis.shp_wgs84, add =T)
+legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 
 
 #example code for production of an image of graph 
-png(filename = "Images/historical_1121no.png",
+png(filename = "Images/historical_1215no.png",
     width=1500, height=1500, res=200)
-sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM",
+         xlab= "Longitude",
+         ylab = "Latitude")
 sp::plot(ca.shp_wgs84, add = T)
-sp::plot(weis.shp_wgs84, add =T)
-legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 dev.off()
 
+par(mfrow=c(1,1))
 #image with no overlay
-png(filename = "Images/historical_12_2_png",
+png(filename = "Images/historical_1215.png",
     width=1500, height=1500, res=200)
-sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM",
+         xlab= "Longitude",
+         ylab = "Latitude")
 sp::plot(ca.shp_wgs84, add = T)
-par(mfrow=c(1,2))
-sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
+
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM",
+         xlab= "Longitude",
+         ylab = "Latitude")
 sp::plot(ca.shp_wgs84, add = T)
 sp::plot(weis.shp_wgs84, add =T)
 legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 dev.off()
      
-print(getVarImp(histo_sdm))
+getVarImp(histo_sdm)
+plot(getVarImp(histo_sdm))
 
+#create image of varimp plot 
+png(filename = "Images/historical_1215_varimp.png",
+    width=1500, height=1500, res=200)
+plot(getVarImp(histo_sdm))
+dev.off()
 
 ## PROJECT TO PRESENT DAY ###
 ## Now let's read in worldclim data and project the ensemble to present day, 
@@ -216,29 +230,73 @@ sdm_current.prediction <- sdm::ensemble(histo_sdm, prism_1995_2015.stack,
                               setting=list(method="weighted", stat="TSS"))
 
 # Let's plot the SDM ensemble prediction
-png(filename = "Images/historic_to_present_1121.png",
+png(filename = "Images/historic_to_present_1215no.png",
     width=1500, height=1500, res=200)
-sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM")
+sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM",
+         xlab= "Longitude",
+         ylab = "Latitude")
 sp::plot(ca.shp_wgs84, add = T)
-#sp::plot(calveg.shp_wgs84, add =T)
-legend("topright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
 dev.off()
 
-getVarImp(sdm_current.prediction)
+#image with overlay
+png(filename = "Images/historic_to_present_1215.png",
+    width=1500, height=1500, res=200)
+sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM",
+         xlab= "Longitude",
+         ylab = "Latitude")
+sp::plot(ca.shp_wgs84, add = T)
+sp::plot(calveg.shp_wgs84, add =T)
+legend("topright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
+dev.off()
 
 
 # Let's put the historic prediction and current prediction into one figure:
 par(mfrow=c(1,2))
-sp::plot(histo_ensemble, main = "Historic Ensemble SDM")
-sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM")
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM",xlab= "Longitude",
+         ylab = "Latitude")
+sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM",xlab= "Longitude",
+         ylab = "Latitude")
+
+#image of hist/current
+png(filename = "Images/historic_current_1215.png",
+    width=1500, height=1500, res=200)
+par(mfrow=c(1,2))
+sp::plot(histo_ensemble, main = "Historic Ensemble SDM",xlab= "Longitude",
+         ylab = "Latitude")
+sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM",xlab= "Longitude",
+         ylab = "Latitude")
+dev.off()
+
 
 # Let's look at the change in habitat suitability over time by subtracting the
 # more recent prediction from the historic prediction
 par(mfrow=c(1,1))
 prediction_dif <- sdm_current.prediction - histo_ensemble
-sp::plot(prediction_dif, main = "Change in Habitat Suitability (1930s-2010s")
+sp::plot(prediction_dif, main = "Change in Habitat Suitability (1930s-2010s)")
 sp::plot(ca.shp_wgs84, add = T)
 
+#image of change in hab suitability
+png(filename = "Images/historic_current_habsuitability1215.png",
+    width=1500, height=1500, res=200)
+sp::plot(prediction_dif, main = "Change in Habitat Suitability (1930s-2010s)")
+sp::plot(ca.shp_wgs84, add = T)
+dev.off()
+
+##image of calveg / overlay 
+png(filename = "Images/calveg_1215.png",
+    width=1500, height=1500, res=200)
+sp::plot(ca.shp_wgs84)
+sp::plot(calveg.shp_wgs84, add =T)
+legend("topright", legend = "CALVEG SageBrush Occ.", pch = 16, cex=.6)
+dev.off()
+
+#image of weis / overlay 
+png(filename = "Images/weis_1215.png",
+    width=1500, height=1500, res=200)
+sp::plot(ca.shp_wgs84)
+sp::plot(weis.shp_wgs84, add =T)
+legend("topright", legend = "WEISLANDER SageBrush Occ.", pch = 16, cex=.6)
+dev.off()
 
 <<<<<<< HEAD
 =======
@@ -249,6 +307,17 @@ sp::plot(ca.shp_wgs84, add = T)
 # Layer's for Future Projections
 cmip5_2050.stack <- raster::stack(list.files("Data/CMIP5/cmip5/2_5m", full.names = T))
 cmip5_2050.stack <- crop(cmip5_2050.stack, ca.shp_wgs84)
+print(cmip5_2050.stack)
+print(prism_uncorr.stack)
+
+#they have a different number of layers and different names 
+# i will delete the layers from cmip5 then change the names
+#to the same as the prism stuff 
+cmip5_2050.stack <- dropLayer(cmip5_2050.stack, "bio10","bio11","bio12",
+                              "bio16","bio17","bio19","bio4","bio5","bio6")
+cmip5_2050.stack <- dropLayer(cmip5_2050.stack,"bio1")
+
+#cmip5_2050.stack <- names(prism_uncorr.stack)
 
 sdm_future.prediction <- sdm::ensemble(histo_sdm, cmip5_2050.stack, 
                                        setting=list(method="weighted", stat="TSS"))
@@ -294,12 +363,10 @@ rm(list = delete_these)
 
 #################### PART II ###########################################
 ## Look at role of human impacts on calveg in present time
-# We'll make an SDM using current occurrences (calveg), current climate (worldclim),
+# We'll make an SDM using current occurrences (calveg), current climate (PRISM),
 # and current human impact
-
-worldclim.stack <- raster::stack(
-  list.files("Data/WorldClim2-5/", pattern = "*.bil", full.names = T))
-worldclim.stack <- crop(worldclim.stack, extent(ca.shp_wgs84))
+prism_1995_2015.stack <- raster::stack("Data/PRISM/1995-2015/Bioclimatic19 (1km)/prism9515_bioclim19.grd")
+prism_1995_2015.stack <- crop(prism_1995_2015.stack, extent(ca.shp_wgs84))
 
 calveg.shp <- readOGR("Data/CALVEG_Sage/Total_Sage.shp")
 calveg.shp_wgs84 <- spTransform(calveg.shp, wgs84.crs)
@@ -327,6 +394,7 @@ abs_calveg_test.df <- dplyr::setdiff(data.frame(abs_calveg_test.pts_backr@coords
                                    data.frame(abs_calveg_test.pts_backr[calveg.shp_wgs84]@coords))
 
 # Let's read in human impact raster and add it it to stack of predictors
+<<<<<<< HEAD
 hf.stack_raw <- raster("Data/HumanFootprint/2009/HFP2009.tif")
 hf.stack_smaller <- crop(hf.stack_raw, c(-1.1e7, -.7e7, 2e6, 6e6))
 
@@ -344,13 +412,25 @@ hf.stack <- raster::resample(hf.stack_wgs84, worldclim.stack$bio1)
 #this works though!but not in the future lines
 #hf.stack <- resample(hf.stack_smaller, worldclim.stack)
 
+=======
+# I used this in bash shell to reproject hfp2009 because it's way faster:
+# gdalwarp -t_srs "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0" HFP2009.tif HFP2009_wgs84.tif
+hf.stack_raw <- raster("Data/HumanFootprint/2009/HFP2009_wgs84.tif")
+hf_ca.stack <- crop(hf.stack_raw,extent(ca.shp_wgs84))
 
-worldclim_hf.stack <- addLayer(worldclim.stack, hf.stack)
+# Need to resample because the raster's have different origins
+#this did not work
+hf.stack <- resample(hf_ca.stack, prism_1995_2015.stack)
+>>>>>>> cfb3356bcf313fb6766b9ae6bc323d2e2210f852
+
+plot(hf.stack)
+plot(calveg.shp, add = TRUE)
+prism_hf.stack <- addLayer(prism_1995_2015.stack, hf.stack)
 
 #now there is an error here, go back up and look at the hf.stack
 curr.dataprep.results <- sdmdataPrep(pres_lonlat.df = pres_calveg.df, 
                                      abs_lonlat.df = abs_calveg.df,
-                                     predictor.stack = worldclim_hf.stack, 
+                                     predictor.stack = prism_hf.stack, 
                                      test_pres.df = pres_calveg_test.df,
                                      test_abs.df = abs_calveg_test.df,
                                      removeCollinearity = T)
@@ -358,7 +438,7 @@ curr.dataprep.results <- sdmdataPrep(pres_lonlat.df = pres_calveg.df,
 curr.dataprep.results$vif.results
 
 curr_sdmdata <- curr.dataprep.results$sdmdata
-worldclim_hf_uncorr.stack <- curr.dataprep.results$uncorr.stack
+prism_hf_uncorr.stack <- curr.dataprep.results$uncorr.stack
 
 
 # ENSEMBLE let's make an ensemble model of all of them
@@ -374,16 +454,31 @@ curr_sdm <- sdm::sdm(curr_sdmFormula, data = curr_sdmdata, methods=c("glm","gam"
 # This ensemble is a prediction, it is no longer an SDM anymore
 curr_ensemble <- sdm::ensemble(curr_sdm, worldclim_hf_uncorr.stack, 
                               setting=list(method="weighted", stat="TSS"))
+#is this suppused to be prism instead of worldclim?
+curr_ensemble <- sdm::ensemble(curr_sdm, prism_hf_uncorr.stack, 
+                               setting=list(method="weighted", stat="TSS"))
 
 # Let's plot the SDM ensemble prediction
+png(filename = "Images/hf_currensemble_1221.png",
+    width=1500, height=1500, res=200)
 sp::plot(curr_ensemble, main = "Current Ensemble SDM")
 sp::plot(ca.shp_wgs84, add = T)
+dev.off()
+
+png(filename = "Images/hf_currensemble_1221cal.png",
+    width=1500, height=1500, res=200)
+sp::plot(curr_ensemble, main = "Current Ensemble SDM")
+sp::plot(ca.shp_wgs84, add = T)
+sp::plot(calveg.shp_wgs84, add = T)
+dev.off()
 
 getVarImp(curr_sdm)
+png(filename = "Images/hf_varimp_1221no.png",
+    width=1500, height=1500, res=200)
+plot(getVarImp(curr_sdm))
+dev.off()
 
 # Huh, through this method it kinda looks like human impacts don't define the
 # the current distribution very much
-
-
 
 ######### END PART II ###################
