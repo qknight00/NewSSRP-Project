@@ -18,7 +18,7 @@ library(dplyr)
 library(RColorBrewer)
 udunits_dir <- file.path(Sys.getenv("HOME"), "udunits")
 dyn.load(paste0(udunits_dir, "/local/lib/libudunits2.so.0"))
-# install.packages("sf")
+install.packages("sf")
 library(sf)
 library(ggplot2)
 
@@ -114,7 +114,7 @@ prediction_plot <- function(sdm_prediction.grid, plotTitle){
                                             aes(x,y, fill = value, alpha = 1)) +
     scale_fill_gradient2(name = paste("Habitat Suitability"), 
                          limits = c(0,1),
-                         low = 'white', mid = 'red', high = 'green', midpoint = .25) +
+                         low = 'white', mid = 'navyblue', high = 'yellow', midpoint = .50) +
     coord_equal() +
     geom_sf(data = ca.sf, aes(), size = .1, fill = NA) +
     xlim(c(min(sdm_prediction.df$x),max(sdm_prediction.df$x))) +
@@ -221,17 +221,15 @@ histo_sdm <- sdm::sdm(histo_sdmFormula, data = histo_sdmdata, methods=c("glm","g
 
 # This ensemble is a prediction, it is no longer an SDM anymore
 histo_ensemble <- sdm::ensemble(histo_sdm , prism_uncorr.stack,
-<<<<<<< HEAD
-                              setting=list(method="weighted", stat="TSS") ,overwrite =TRUE)
-=======
-                              setting=list(method="weighted", stat="AUC"))
->>>>>>> 9fe86c80ba7a98f58179b224d974bc1f05586ba4
+                                setting=list(method="weighted", stat="TSS") ,overwrite =TRUE)
+                                setting=list(method="weighted", stat="AUC")
+
 
 historic_pred.plot <- prediction_plot(sdm_prediction.grid = histo_ensemble,
                                      plotTitle = "Historic Ensemble SDM")
 # Let's plot the SDM ensemble prediction
 <<<<<<< HEAD
-?plot
+
 sp::plot(histo_ensemble, main = "Historic Ensemble SDM",
          xlab= "Longitude",
          ylab = "Latitude")
@@ -242,7 +240,7 @@ legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 
 
 #example code for production of an image of graph 
-png(filename = "Images/historical_1215no.png",
+png(filename = "Images/historical_1227no.png",
     width=1500, height=1500, res=200)
 sp::plot(histo_ensemble, main = "Historic Ensemble SDM",
          xlab= "Longitude",
@@ -252,7 +250,7 @@ dev.off()
 
 par(mfrow=c(1,1))
 #image with no overlay
-png(filename = "Images/historical_1215.png",
+png(filename = "Images/historical_1227.png",
     width=1500, height=1500, res=200)
 sp::plot(histo_ensemble, main = "Historic Ensemble SDM",
          xlab= "Longitude",
@@ -268,7 +266,8 @@ legend("topright", legend = "Weislander SageBrush Occ.", pch = 16, cex=.6)
 dev.off()
 =======
 historic_pred.plot
-ggsave("Images/historic_12-24.png", plot = historic_pred.plot)
+sp::plot(weis.shp_wgs84, add =T)
+ggsave("Images/historic_12-28.png", plot = historic_pred.plot)
 
 >>>>>>> 9fe86c80ba7a98f58179b224d974bc1f05586ba4
      
@@ -276,7 +275,7 @@ getVarImp(histo_sdm)
 plot(getVarImp(histo_sdm))
 
 #create image of varimp plot 
-png(filename = "Images/historical_1215_varimp.png",
+png(filename = "Images/historical_1227_varimp.png",
     width=1500, height=1500, res=200)
 plot(getVarImp(histo_sdm))
 dev.off()
@@ -291,15 +290,15 @@ names(prism_1995_2015.stack) <- gsub("layer.", "bio", p.names)
 prism_1995_2015.stack <- projectRaster(prism_1995_2015.stack, crs = wgs84.crs)
 
 prism_1995_2015.stack <- crop(prism_1995_2015.stack, extent(ca.shp_wgs84))
-# calveg.shp <- readOGR("Data/CALVEG_Sage/Total_Sage.shp")
-# calveg.shp_wgs84 <- spTransform(calveg.shp, wgs84.crs)
+#calveg.shp <- readOGR("Data/CALVEG_Sage/Total_Sage.shp")
+#calveg.shp_wgs84 <- spTransform(calveg.shp, wgs84.crs)
 
 sdm_current.prediction <- sdm::ensemble(histo_sdm, prism_1995_2015.stack, 
                               setting=list(method="weighted", stat="AUC"))
 
 # Let's plot the SDM ensemble prediction
 <<<<<<< HEAD
-png(filename = "Images/historic_to_present_1215no.png",
+png(filename = "Images/historic_to_present_1227no.png",
     width=1500, height=1500, res=200)
 sp::plot(sdm_current.prediction, main = "Historic --> Present Ensemble SDM",
          xlab= "Longitude",
@@ -311,7 +310,7 @@ current_pred.plot <- prediction_plot(sdm_prediction.grid = sdm_current.predictio
                                      plotTitle = "Historic --> Present Ensemble SDM")
 
 current_pred.plot
-ggsave("Images/current_12-24.png", plot = current_pred.plot)
+ggsave("Images/current_12-28w.png", plot = current_pred.plot)
 >>>>>>> 9fe86c80ba7a98f58179b224d974bc1f05586ba4
 
 #image with overlay
@@ -393,7 +392,7 @@ hab_dif.plot <- ggplot() + geom_raster(data = sdm_prediction_dif.df,
                                           aes(x,y, fill = value, alpha = 1)) +
   scale_fill_gradient2(name = paste("Δ Habitat Suitability"), 
                        #limits = c(-1,1),
-                       low = 'red', mid = 'white', high = 'green', midpoint = 0) +
+                       low = 'navyblue', mid = 'white', high = 'yellow', midpoint = 0) +
   coord_equal() +
   geom_sf(data = ca.sf, aes(), size = .1, fill = NA) +
   xlim(c(min(sdm_prediction_dif.df$x),max(sdm_prediction_dif.df$x))) +
@@ -402,7 +401,7 @@ hab_dif.plot <- ggplot() + geom_raster(data = sdm_prediction_dif.df,
   ggtitle("Change in Habitat Suitability (1930s-2010s")
 
 hab_dif.plot
-ggsave("Images/hab_suit_dif.png", plot = hab_dif.plot)
+ggsave("Images/hab_suit_dif12_29.png", plot = hab_dif.plot)
 >>>>>>> 9fe86c80ba7a98f58179b224d974bc1f05586ba4
 
 >>>>>>> 21ac578982a539976924f1beb0513d6e44205734
@@ -412,17 +411,7 @@ ggsave("Images/hab_suit_dif.png", plot = hab_dif.plot)
 
 cmip5_2050.stack <- raster::stack(list.files("Data/CMIP5/cmip5/2_5m", full.names = T))
 cmip5_2050.stack <- crop(cmip5_2050.stack, ca.shp_wgs84)
-print(cmip5_2050.stack)
-print(prism_uncorr.stack)
 
-#they have a different number of layers and different names 
-# i will delete the layers from cmip5 then change the names
-#to the same as the prism stuff 
-cmip5_2050.stack <- dropLayer(cmip5_2050.stack, "bio10","bio11","bio12",
-                              "bio16","bio17","bio19","bio4","bio5","bio6")
-cmip5_2050.stack <- dropLayer(cmip5_2050.stack,"bio1")
-
-#cmip5_2050.stack <- names(prism_uncorr.stack)
 
 cmip5_2050Resample.stack <- resample(cmip5_2050.stack, prism_uncorr.stack)
 
@@ -430,6 +419,7 @@ sdm_future.prediction <- sdm::ensemble(histo_sdm, cmip5_2050Resample.stack,
                                        setting=list(method="weighted", stat="AUC"))
 
 
+??prediction_plot
 
 future_pred.plot <- prediction_plot(sdm_prediction.grid = sdm_future.prediction,
                                     plotTitle = "Historic --> Future Ensemble SDM")
@@ -438,7 +428,7 @@ future_pred.plot <- prediction_plot(sdm_prediction.grid = sdm_future.prediction,
 future_pred.plot
 
 # This saves it
-ggsave("Images/future_12-24.png", plot = future_pred.plot)
+ggsave("Images/future_12-29.png", plot = future_pred.plot)
 
 
 # compare the future to the historic
@@ -564,6 +554,13 @@ curr_ensemble <- sdm::ensemble(curr_sdm, prism_hf_uncorr.stack,
 =======
                               setting=list(method="weighted", stat="AUC"))
 >>>>>>> 9fe86c80ba7a98f58179b224d974bc1f05586ba4
+
+landuse_pred.plot <- prediction_plot(sdm_prediction.grid = curr_ensemble,
+                                    plotTitle = "Human Land Use Change")
+
+
+landuse_pred.plot
+ggsave("Images/landuse_12-29.png", plot = landuse_pred.plot)
 
 # Let's plot the SDM ensemble prediction
 png(filename = "Images/hf_currensemble_1221.png",
